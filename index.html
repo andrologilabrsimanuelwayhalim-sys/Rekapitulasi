@@ -32,6 +32,7 @@
             color: white;
             padding: 30px;
             text-align: center;
+            position: relative;
         }
 
         .header h1 {
@@ -42,6 +43,65 @@
         .header p {
             font-size: 14px;
             opacity: 0.9;
+        }
+
+        .sync-status {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 13px;
+        }
+
+        .sync-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #4ade80;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading-spinner {
+            text-align: center;
+            color: white;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         .form-section {
@@ -215,36 +275,6 @@
             background: #138496;
         }
 
-        .btn-backup {
-            background: #6f42c1;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            height: 42px;
-        }
-
-        .btn-backup:hover {
-            background: #5a32a3;
-        }
-
-        .btn-restore {
-            background: #fd7e14;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            height: 42px;
-        }
-
-        .btn-restore:hover {
-            background: #e8590c;
-        }
-
         .stats {
             display: flex;
             gap: 20px;
@@ -377,14 +407,31 @@
             th, td {
                 padding: 8px;
             }
+
+            .sync-status {
+                position: static;
+                margin-top: 10px;
+                justify-content: center;
+            }
         }
     </style>
 </head>
 <body>
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Memuat data...</p>
+        </div>
+    </div>
+
     <div class="container">
         <div class="header">
+            <div class="sync-status">
+                <div class="sync-indicator"></div>
+                <span>Tersinkron</span>
+            </div>
             <h1>📊 Rekapitulasi Pasien Laboratorium Andrologi</h1>
-            <p>RS Imanuel Way Halim Bandarlampung</p>
+            <p>RS Imanuel Way Halim Bandarlampung - Cloud Storage</p>
         </div>
 
         <div class="form-section">
@@ -509,9 +556,6 @@
                 </div>
                 <button class="btn-filter" id="filterBtn">Terapkan Filter</button>
                 <button class="btn-export" id="exportBtn">📥 Ekspor ke Excel</button>
-                <button class="btn-backup" id="backupBtn">💾 Backup Data</button>
-                <button class="btn-restore" id="restoreBtn">📂 Restore Data</button>
-                <input type="file" id="restoreFile" accept=".json" style="display: none;">
             </div>
 
             <div class="stats">
@@ -537,19 +581,60 @@
         </div>
     </div>
 
-    <script>
-        let patients = [];
-        let editIndex = -1;
-        let currentFilter = { bulan: '', tahun: '' };
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, set, get, remove, onValue, push } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
 
-        // Load data saat halaman dimuat
-        window.addEventListener('DOMContentLoaded', function() {
-            loadData();
-            setupEventListeners();
-        });
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAzIn65QflPYxr2yWPqae45gfJfmQOdnis",
+            authDomain: "rekapitulasi-6ae8e.firebaseapp.com",
+            databaseURL: "https://rekapitulasi-6ae8e-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "rekapitulasi-6ae8e",
+            storageBucket: "rekapitulasi-6ae8e.firebasestorage.app",
+            messagingSenderId: "878979433734",
+            appId: "1:878979433734:web:a4c4bf2361357e2e420a87",
+            measurementId: "G-ZRM28MV2G0"
+        };
 
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const patientsRef = ref(database, 'patients');
+
+        let patients = {};
+        let editKey = null;
+        let currentFilter = { bulan: '', tahun: '', pemeriksaan: '', diagnosa: '' };
+
+        // Show/hide loading overlay
+        function showLoading() {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+
+        // Load data from Firebase
+        function loadData() {
+            showLoading();
+            onValue(patientsRef, (snapshot) => {
+                patients = snapshot.val() || {};
+                populateYearFilter();
+                populatePemeriksaanFilter();
+                populateDiagnosaFilter();
+                renderTable();
+                updateStats();
+                hideLoading();
+            }, (error) => {
+                console.error('Error loading data:', error);
+                alert('Gagal memuat data dari server');
+                hideLoading();
+            });
+        }
+
+        // Setup event listeners
         function setupEventListeners() {
-            // Handle perubahan diagnosa
             document.getElementById('diagnosa').addEventListener('change', function() {
                 const customGroup = document.getElementById('diagnosaCustomGroup');
                 const customInput = document.getElementById('diagnosaCustom');
@@ -564,7 +649,6 @@
                 }
             });
 
-            // Handle perubahan nama pemeriksaan
             document.getElementById('namaPemeriksaan').addEventListener('change', function() {
                 const customGroup = document.getElementById('pemeriksaanCustomGroup');
                 const customInput = document.getElementById('pemeriksaanCustom');
@@ -579,7 +663,6 @@
                 }
             });
 
-            // Handle file upload
             document.getElementById('pdfFile').addEventListener('change', function(e) {
                 const fileName = document.getElementById('fileName');
                 if (e.target.files.length > 0) {
@@ -589,42 +672,21 @@
                 }
             });
 
-            // Submit form
             document.getElementById('patientForm').addEventListener('submit', function(e) {
                 e.preventDefault();
                 handleSubmit();
             });
 
-            // Reset button
             document.getElementById('resetBtn').addEventListener('click', function() {
                 resetForm();
             });
 
-            // Filter button
             document.getElementById('filterBtn').addEventListener('click', function() {
                 applyFilter();
             });
 
-            // Export button
             document.getElementById('exportBtn').addEventListener('click', function() {
                 exportToExcel();
-            });
-
-            // Backup button
-            document.getElementById('backupBtn').addEventListener('click', function() {
-                backupData();
-            });
-
-            // Restore button
-            document.getElementById('restoreBtn').addEventListener('click', function() {
-                document.getElementById('restoreFile').click();
-            });
-
-            // Restore file input
-            document.getElementById('restoreFile').addEventListener('change', function(e) {
-                if (e.target.files.length > 0) {
-                    restoreData(e.target.files[0]);
-                }
             });
         }
 
@@ -657,7 +719,9 @@
             }
         }
 
-        function savePatient(diagnosa, namaPemeriksaan, pdfData) {
+        async function savePatient(diagnosa, namaPemeriksaan, pdfData) {
+            showLoading();
+            
             const patientData = {
                 tanggalPemeriksaan: document.getElementById('tanggalPemeriksaan').value,
                 nomorRM: document.getElementById('nomorRM').value,
@@ -669,42 +733,29 @@
                 tanggalInput: new Date().toISOString()
             };
 
-            if (editIndex >= 0) {
-                patients[editIndex] = patientData;
-                editIndex = -1;
-                document.getElementById('submitBtn').textContent = 'Tambah Data';
-            } else {
-                patients.push(patientData);
+            try {
+                if (editKey) {
+                    await set(ref(database, `patients/${editKey}`), patientData);
+                    alert('Data berhasil diupdate!');
+                    editKey = null;
+                    document.getElementById('submitBtn').textContent = 'Tambah Data';
+                } else {
+                    const newPatientRef = push(patientsRef);
+                    await set(newPatientRef, patientData);
+                    alert('Data berhasil ditambahkan!');
+                }
+                resetForm();
+            } catch (error) {
+                console.error('Error saving data:', error);
+                alert('Gagal menyimpan data: ' + error.message);
             }
-
-            saveData();
-            populateYearFilter();
-            populatePemeriksaanFilter();
-            populateDiagnosaFilter();
-            renderTable();
-            updateStats();
-            resetForm();
-        }
-
-        function loadData() {
-            const saved = localStorage.getItem('patientsData');
-            if (saved) {
-                patients = JSON.parse(saved);
-            }
-            populateYearFilter();
-            populatePemeriksaanFilter();
-            populateDiagnosaFilter();
-            renderTable();
-            updateStats();
-        }
-
-        function saveData() {
-            localStorage.setItem('patientsData', JSON.stringify(patients));
+            
+            hideLoading();
         }
 
         function populateYearFilter() {
             const years = new Set();
-            patients.forEach(patient => {
+            Object.values(patients).forEach(patient => {
                 if (patient.tanggalPemeriksaan) {
                     const year = patient.tanggalPemeriksaan.split('-')[0];
                     years.add(year);
@@ -713,8 +764,6 @@
             
             const filterTahun = document.getElementById('filterTahun');
             const currentValue = filterTahun.value;
-            
-            // Clear existing options except first one
             filterTahun.innerHTML = '<option value="">Semua Tahun</option>';
             
             Array.from(years).sort().reverse().forEach(year => {
@@ -724,7 +773,6 @@
                 filterTahun.appendChild(option);
             });
             
-            // Restore previous value if still exists
             if (currentValue && years.has(currentValue)) {
                 filterTahun.value = currentValue;
             }
@@ -732,7 +780,7 @@
 
         function populatePemeriksaanFilter() {
             const pemeriksaanSet = new Set();
-            patients.forEach(patient => {
+            Object.values(patients).forEach(patient => {
                 if (patient.namaPemeriksaan) {
                     pemeriksaanSet.add(patient.namaPemeriksaan);
                 }
@@ -740,8 +788,6 @@
             
             const filterPemeriksaan = document.getElementById('filterPemeriksaan');
             const currentValue = filterPemeriksaan.value;
-            
-            // Clear existing options except first one
             filterPemeriksaan.innerHTML = '<option value="">Semua Pemeriksaan</option>';
             
             Array.from(pemeriksaanSet).sort().forEach(pemeriksaan => {
@@ -751,7 +797,6 @@
                 filterPemeriksaan.appendChild(option);
             });
             
-            // Restore previous value if still exists
             if (currentValue && pemeriksaanSet.has(currentValue)) {
                 filterPemeriksaan.value = currentValue;
             }
@@ -759,7 +804,7 @@
 
         function populateDiagnosaFilter() {
             const diagnosaSet = new Set();
-            patients.forEach(patient => {
+            Object.values(patients).forEach(patient => {
                 if (patient.diagnosa) {
                     diagnosaSet.add(patient.diagnosa);
                 }
@@ -767,8 +812,6 @@
             
             const filterDiagnosa = document.getElementById('filterDiagnosa');
             const currentValue = filterDiagnosa.value;
-            
-            // Clear existing options except first one
             filterDiagnosa.innerHTML = '<option value="">Semua Diagnosa</option>';
             
             Array.from(diagnosaSet).sort().forEach(diagnosa => {
@@ -778,7 +821,6 @@
                 filterDiagnosa.appendChild(option);
             });
             
-            // Restore previous value if still exists
             if (currentValue && diagnosaSet.has(currentValue)) {
                 filterDiagnosa.value = currentValue;
             }
@@ -794,7 +836,7 @@
         }
 
         function getFilteredPatients() {
-            return patients.filter(patient => {
+            return Object.entries(patients).filter(([key, patient]) => {
                 if (!patient.tanggalPemeriksaan) return false;
                 
                 const [year, month] = patient.tanggalPemeriksaan.split('-');
@@ -811,14 +853,14 @@
         function groupByMonth(patientsList) {
             const groups = {};
             
-            patientsList.forEach(patient => {
+            patientsList.forEach(([key, patient]) => {
                 const [year, month] = patient.tanggalPemeriksaan.split('-');
-                const key = `${year}-${month}`;
+                const monthKey = `${year}-${month}`;
                 
-                if (!groups[key]) {
-                    groups[key] = [];
+                if (!groups[monthKey]) {
+                    groups[monthKey] = [];
                 }
-                groups[key].push(patient);
+                groups[monthKey].push({ key, ...patient });
             });
             
             return groups;
@@ -894,10 +936,9 @@
                 `;
 
                 monthPatients.forEach(patient => {
-                    const originalIndex = patients.indexOf(patient);
                     let pdfLink = '-';
                     if (patient.pdf) {
-                        pdfLink = `<a href="#" onclick="viewPDF(${originalIndex}); return false;" class="pdf-link">📄 Lihat PDF</a> | 
+                        pdfLink = `<a href="#" onclick="viewPDF('${patient.key}'); return false;" class="pdf-link">📄 Lihat PDF</a> | 
                                    <a href="${patient.pdf.data}" download="${patient.pdf.name}" class="pdf-link">💾 Download</a>`;
                     }
                     
@@ -913,8 +954,8 @@
                             <td>${pdfLink}</td>
                             <td>
                                 <div class="action-buttons">
-                                    <button class="btn-edit" onclick="editPatient(${originalIndex})">Edit</button>
-                                    <button class="btn-delete" onclick="deletePatient(${originalIndex})">Hapus</button>
+                                    <button class="btn-edit" onclick="editPatient('${patient.key}')">Edit</button>
+                                    <button class="btn-delete" onclick="deletePatient('${patient.key}')">Hapus</button>
                                 </div>
                             </td>
                         </tr>
@@ -931,15 +972,14 @@
             container.innerHTML = tableHTML;
         }
 
-        function editPatient(index) {
-            editIndex = index;
-            const patient = patients[index];
+        window.editPatient = function(key) {
+            editKey = key;
+            const patient = patients[key];
             
             document.getElementById('tanggalPemeriksaan').value = patient.tanggalPemeriksaan;
             document.getElementById('nomorRM').value = patient.nomorRM;
             document.getElementById('namaPasien').value = patient.namaPasien;
             
-            // Handle nama pemeriksaan
             const pemeriksaanSelect = document.getElementById('namaPemeriksaan');
             const pemeriksaanOptions = Array.from(pemeriksaanSelect.options).map(opt => opt.value);
             
@@ -954,7 +994,6 @@
                 document.getElementById('pemeriksaanCustom').required = true;
             }
             
-            // Handle diagnosa
             const diagnosaSelect = document.getElementById('diagnosa');
             const diagnosaOptions = Array.from(diagnosaSelect.options).map(opt => opt.value);
             
@@ -975,15 +1014,17 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        function deletePatient(index) {
+        window.deletePatient = async function(key) {
             if (confirm('Apakah Anda yakin ingin menghapus data pasien ini?')) {
-                patients.splice(index, 1);
-                saveData();
-                populateYearFilter();
-                populatePemeriksaanFilter();
-                populateDiagnosaFilter();
-                renderTable();
-                updateStats();
+                showLoading();
+                try {
+                    await remove(ref(database, `patients/${key}`));
+                    alert('Data berhasil dihapus!');
+                } catch (error) {
+                    console.error('Error deleting data:', error);
+                    alert('Gagal menghapus data: ' + error.message);
+                }
+                hideLoading();
             }
         }
 
@@ -994,7 +1035,7 @@
             document.getElementById('pemeriksaanCustomGroup').style.display = 'none';
             document.getElementById('pemeriksaanCustom').required = false;
             document.getElementById('fileName').textContent = '';
-            editIndex = -1;
+            editKey = null;
             document.getElementById('submitBtn').textContent = 'Tambah Data';
         }
 
@@ -1004,14 +1045,13 @@
             document.getElementById('totalPemeriksaan').textContent = filteredPatients.length;
         }
 
-        function viewPDF(index) {
-            const patient = patients[index];
+        window.viewPDF = function(key) {
+            const patient = patients[key];
             if (!patient.pdf) {
                 alert('File PDF tidak tersedia');
                 return;
             }
 
-            // Buka PDF di tab baru
             const pdfWindow = window.open('', '_blank');
             pdfWindow.document.write(`
                 <!DOCTYPE html>
@@ -1038,17 +1078,13 @@
                 return;
             }
 
-            // Sort by date
-            filteredPatients.sort((a, b) => new Date(a.tanggalPemeriksaan) - new Date(b.tanggalPemeriksaan));
+            const patientsList = filteredPatients.map(([key, patient]) => patient);
+            patientsList.sort((a, b) => new Date(a.tanggalPemeriksaan) - new Date(b.tanggalPemeriksaan));
 
-            // Create CSV content
-            let csvContent = '\uFEFF'; // UTF-8 BOM for Excel
-            
-            // Header
+            let csvContent = '\uFEFF';
             csvContent += 'No,Tanggal Pemeriksaan,Nomor RM,Nama Pasien,Nama Pemeriksaan,Diagnosa,Keterangan\n';
             
-            // Data rows
-            filteredPatients.forEach((patient, index) => {
+            patientsList.forEach((patient, index) => {
                 const row = [
                     index + 1,
                     formatDate(patient.tanggalPemeriksaan),
@@ -1058,7 +1094,6 @@
                     patient.diagnosa,
                     patient.keterangan || '-'
                 ].map(cell => {
-                    // Escape quotes and wrap in quotes if contains comma or newline
                     const cellStr = String(cell).replace(/"/g, '""');
                     return cellStr.includes(',') || cellStr.includes('\n') ? `"${cellStr}"` : cellStr;
                 }).join(',');
@@ -1066,12 +1101,10 @@
                 csvContent += row + '\n';
             });
 
-            // Create blob and download
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             const url = URL.createObjectURL(blob);
             
-            // Generate filename
             const now = new Date();
             const dateStr = now.toISOString().split('T')[0];
             let filename = `Data_Pasien_Lab_Andrologi_${dateStr}`;
@@ -1095,99 +1128,11 @@
             document.body.removeChild(link);
         }
 
-        function backupData() {
-            if (patients.length === 0) {
-                alert('Tidak ada data untuk di-backup');
-                return;
-            }
-
-            // Create backup object dengan timestamp
-            const backup = {
-                timestamp: new Date().toISOString(),
-                version: '1.0',
-                totalPatients: patients.length,
-                data: patients
-            };
-
-            // Convert to JSON
-            const jsonStr = JSON.stringify(backup, null, 2);
-            const blob = new Blob([jsonStr], { type: 'application/json' });
-            
-            // Create download link
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            
-            // Generate filename
-            const now = new Date();
-            const dateStr = now.toISOString().slice(0, 19).replace(/:/g, '-');
-            const filename = `Backup_Lab_Andrologi_${dateStr}.json`;
-            
-            link.setAttribute('href', url);
-            link.setAttribute('download', filename);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-
-            alert(`Backup berhasil!\nFile: ${filename}\nTotal data: ${patients.length} pasien\n\nSimpan file ini di komputer Anda sebagai cadangan.`);
-        }
-
-        function restoreData(file) {
-            if (!file) return;
-
-            const reader = new FileReader();
-            
-            reader.onload = function(e) {
-                try {
-                    const backup = JSON.parse(e.target.result);
-                    
-                    // Validasi struktur backup
-                    if (!backup.data || !Array.isArray(backup.data)) {
-                        throw new Error('Format file backup tidak valid');
-                    }
-
-                    // Konfirmasi restore
-                    const confirmMsg = `Restore data dari backup?\n\n` +
-                        `Tanggal backup: ${new Date(backup.timestamp).toLocaleString('id-ID')}\n` +
-                        `Total data: ${backup.totalPatients} pasien\n\n` +
-                        `PERHATIAN: Data yang ada sekarang akan ditimpa!\n` +
-                        `Data saat ini: ${patients.length} pasien`;
-                    
-                    if (!confirm(confirmMsg)) {
-                        document.getElementById('restoreFile').value = '';
-                        return;
-                    }
-
-                    // Restore data
-                    patients = backup.data;
-                    saveData();
-                    
-                    // Update UI
-                    populateYearFilter();
-                    populatePemeriksaanFilter();
-                    populateDiagnosaFilter();
-                    renderTable();
-                    updateStats();
-                    
-                    alert(`Restore berhasil!\n${backup.totalPatients} data pasien telah dipulihkan.`);
-                    
-                    // Reset file input
-                    document.getElementById('restoreFile').value = '';
-                    
-                } catch (error) {
-                    alert('Error: File backup tidak valid atau rusak.\n\n' + error.message);
-                    document.getElementById('restoreFile').value = '';
-                }
-            };
-            
-            reader.onerror = function() {
-                alert('Error: Gagal membaca file backup.');
-                document.getElementById('restoreFile').value = '';
-            };
-            
-            reader.readAsText(file);
-        }
+        // Initialize app
+        window.addEventListener('DOMContentLoaded', function() {
+            loadData();
+            setupEventListeners();
+        });
     </script>
 </body>
-
 </html>
