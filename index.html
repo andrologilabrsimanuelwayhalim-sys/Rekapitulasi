@@ -451,19 +451,46 @@
                         <input type="text" id="namaPasien" required>
                     </div>
                     <div class="form-group">
-                        <label for="namaPemeriksaan">Nama Pemeriksaan *</label>
-                        <select id="namaPemeriksaan" required>
-                            <option value="">-- Pilih Pemeriksaan --</option>
-                            <option value="Alfa Glucosidase">Alfa Glucosidase</option>
-                            <option value="Analisa Aspermia">Analisa Aspermia</option>
-                            <option value="Analisa Sperma">Analisa Sperma</option>
-                            <option value="DFI">DFI</option>
-                            <option value="Fructose">Fructose</option>
-                            <option value="Preparasi Sperma">Preparasi Sperma</option>
-                            <option value="Urine Pascaejakulasi">Urine Pascaejakulasi</option>
-                            <option value="Zinc">Zinc</option>
-                            <option value="lainnya">Lainnya (Sebutkan)</option>
-                        </select>
+                        <label for="namaPemeriksaan">Nama Pemeriksaan * (Pilih satu atau lebih)</label>
+                        <div id="pemeriksaanCheckboxes" style="border: 2px solid #dee2e6; border-radius: 8px; padding: 12px; max-height: 200px; overflow-y: auto; background: white;">
+                            <label style="display: flex; align-items: center; margin-bottom: 8px; font-weight: normal; cursor: pointer;">
+                                <input type="checkbox" name="pemeriksaan" value="Alfa Glucosidase" style="margin-right: 8px; width: 18px; height: 18px;">
+                                Alfa Glucosidase
+                            </label>
+                            <label style="display: flex; align-items: center; margin-bottom: 8px; font-weight: normal; cursor: pointer;">
+                                <input type="checkbox" name="pemeriksaan" value="Analisa Aspermia" style="margin-right: 8px; width: 18px; height: 18px;">
+                                Analisa Aspermia
+                            </label>
+                            <label style="display: flex; align-items: center; margin-bottom: 8px; font-weight: normal; cursor: pointer;">
+                                <input type="checkbox" name="pemeriksaan" value="Analisa Sperma" style="margin-right: 8px; width: 18px; height: 18px;">
+                                Analisa Sperma
+                            </label>
+                            <label style="display: flex; align-items: center; margin-bottom: 8px; font-weight: normal; cursor: pointer;">
+                                <input type="checkbox" name="pemeriksaan" value="DFI" style="margin-right: 8px; width: 18px; height: 18px;">
+                                DFI
+                            </label>
+                            <label style="display: flex; align-items: center; margin-bottom: 8px; font-weight: normal; cursor: pointer;">
+                                <input type="checkbox" name="pemeriksaan" value="Fructose" style="margin-right: 8px; width: 18px; height: 18px;">
+                                Fructose
+                            </label>
+                            <label style="display: flex; align-items: center; margin-bottom: 8px; font-weight: normal; cursor: pointer;">
+                                <input type="checkbox" name="pemeriksaan" value="Preparasi Sperma" style="margin-right: 8px; width: 18px; height: 18px;">
+                                Preparasi Sperma
+                            </label>
+                            <label style="display: flex; align-items: center; margin-bottom: 8px; font-weight: normal; cursor: pointer;">
+                                <input type="checkbox" name="pemeriksaan" value="Urine Pascaejakulasi" style="margin-right: 8px; width: 18px; height: 18px;">
+                                Urine Pascaejakulasi
+                            </label>
+                            <label style="display: flex; align-items: center; margin-bottom: 8px; font-weight: normal; cursor: pointer;">
+                                <input type="checkbox" name="pemeriksaan" value="Zinc" style="margin-right: 8px; width: 18px; height: 18px;">
+                                Zinc
+                            </label>
+                            <label style="display: flex; align-items: center; margin-bottom: 0; font-weight: normal; cursor: pointer;">
+                                <input type="checkbox" name="pemeriksaan" value="lainnya" id="pemeriksaanLainnyaCheck" style="margin-right: 8px; width: 18px; height: 18px;">
+                                Lainnya (Sebutkan)
+                            </label>
+                        </div>
+                        <div id="selectedPemeriksaanDisplay" style="margin-top: 8px; font-size: 12px; color: #6c757d; font-style: italic;"></div>
                     </div>
                     <div class="form-group">
                         <label for="diagnosa">Diagnosa *</label>
@@ -649,19 +676,38 @@
                 }
             });
 
-            document.getElementById('namaPemeriksaan').addEventListener('change', function() {
-                const customGroup = document.getElementById('pemeriksaanCustomGroup');
-                const customInput = document.getElementById('pemeriksaanCustom');
-                
-                if (this.value === 'lainnya') {
-                    customGroup.style.display = 'block';
-                    customInput.required = true;
-                } else {
-                    customGroup.style.display = 'none';
-                    customInput.required = false;
-                    customInput.value = '';
-                }
+            // Handle pemeriksaan checkboxes
+            document.querySelectorAll('input[name="pemeriksaan"]').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    updateSelectedPemeriksaan();
+                    
+                    const customGroup = document.getElementById('pemeriksaanCustomGroup');
+                    const customInput = document.getElementById('pemeriksaanCustom');
+                    const lainnyaChecked = document.getElementById('pemeriksaanLainnyaCheck').checked;
+                    
+                    if (lainnyaChecked) {
+                        customGroup.style.display = 'block';
+                        customInput.required = true;
+                    } else {
+                        customGroup.style.display = 'none';
+                        customInput.required = false;
+                        customInput.value = '';
+                    }
+                });
             });
+            
+            function updateSelectedPemeriksaan() {
+                const selected = Array.from(document.querySelectorAll('input[name="pemeriksaan"]:checked'))
+                    .map(cb => cb.value)
+                    .filter(val => val !== 'lainnya');
+                
+                const display = document.getElementById('selectedPemeriksaanDisplay');
+                if (selected.length > 0) {
+                    display.textContent = `Terpilih: ${selected.join(', ')}`;
+                } else {
+                    display.textContent = '';
+                }
+            }
 
             document.getElementById('pdfFile').addEventListener('change', function(e) {
                 const fileName = document.getElementById('fileName');
@@ -691,13 +737,25 @@
         }
 
         function handleSubmit() {
+            // Validasi checkbox pemeriksaan
+            const checkedPemeriksaan = Array.from(document.querySelectorAll('input[name="pemeriksaan"]:checked'));
+            if (checkedPemeriksaan.length === 0) {
+                alert('Silakan pilih minimal satu pemeriksaan!');
+                return;
+            }
+            
             const diagnosaSelect = document.getElementById('diagnosa').value;
             const diagnosaCustom = document.getElementById('diagnosaCustom').value;
             const diagnosa = diagnosaSelect === 'lain-lain' ? diagnosaCustom : diagnosaSelect;
             
-            const pemeriksaanSelect = document.getElementById('namaPemeriksaan').value;
+            // Ambil semua pemeriksaan yang dipilih
+            const selectedPemeriksaan = checkedPemeriksaan.map(cb => cb.value);
             const pemeriksaanCustom = document.getElementById('pemeriksaanCustom').value;
-            const namaPemeriksaan = pemeriksaanSelect === 'lainnya' ? pemeriksaanCustom : pemeriksaanSelect;
+            
+            // Ganti "lainnya" dengan custom value jika ada
+            const pemeriksaanList = selectedPemeriksaan.map(p => 
+                p === 'lainnya' ? pemeriksaanCustom : p
+            );
             
             const fileInput = document.getElementById('pdfFile');
             
@@ -710,23 +768,22 @@
                         name: file.name,
                         data: e.target.result
                     };
-                    savePatient(diagnosa, namaPemeriksaan, pdfData);
+                    saveMultiplePatients(diagnosa, pemeriksaanList, pdfData);
                 };
                 
                 reader.readAsDataURL(file);
             } else {
-                savePatient(diagnosa, namaPemeriksaan, null);
+                saveMultiplePatients(diagnosa, pemeriksaanList, null);
             }
         }
 
-        async function savePatient(diagnosa, namaPemeriksaan, pdfData) {
+        async function saveMultiplePatients(diagnosa, pemeriksaanList, pdfData) {
             showLoading();
             
-            const patientData = {
+            const baseData = {
                 tanggalPemeriksaan: document.getElementById('tanggalPemeriksaan').value,
                 nomorRM: document.getElementById('nomorRM').value,
                 namaPasien: document.getElementById('namaPasien').value,
-                namaPemeriksaan: namaPemeriksaan,
                 diagnosa: diagnosa,
                 keterangan: document.getElementById('keterangan').value || '',
                 pdf: pdfData,
@@ -735,14 +792,26 @@
 
             try {
                 if (editKey) {
+                    // Mode edit - update data yang ada
+                    const patientData = {
+                        ...baseData,
+                        namaPemeriksaan: pemeriksaanList.join(', ')
+                    };
                     await set(ref(database, `patients/${editKey}`), patientData);
                     alert('Data berhasil diupdate!');
                     editKey = null;
                     document.getElementById('submitBtn').textContent = 'Tambah Data';
                 } else {
-                    const newPatientRef = push(patientsRef);
-                    await set(newPatientRef, patientData);
-                    alert('Data berhasil ditambahkan!');
+                    // Mode tambah - buat data terpisah per pemeriksaan
+                    for (const pemeriksaan of pemeriksaanList) {
+                        const patientData = {
+                            ...baseData,
+                            namaPemeriksaan: pemeriksaan
+                        };
+                        const newPatientRef = push(patientsRef);
+                        await set(newPatientRef, patientData);
+                    }
+                    alert(`${pemeriksaanList.length} data pemeriksaan berhasil ditambahkan!`);
                 }
                 resetForm();
             } catch (error) {
@@ -980,20 +1049,43 @@
             document.getElementById('nomorRM').value = patient.nomorRM;
             document.getElementById('namaPasien').value = patient.namaPasien;
             
-            const pemeriksaanSelect = document.getElementById('namaPemeriksaan');
-            const pemeriksaanOptions = Array.from(pemeriksaanSelect.options).map(opt => opt.value);
+            // Uncheck semua checkbox dulu
+            document.querySelectorAll('input[name="pemeriksaan"]').forEach(cb => {
+                cb.checked = false;
+            });
+            
+            // Handle pemeriksaan - cek apakah ada di list atau custom
+            const pemeriksaanOptions = Array.from(document.querySelectorAll('input[name="pemeriksaan"]'))
+                .map(cb => cb.value)
+                .filter(val => val !== 'lainnya');
             
             if (pemeriksaanOptions.includes(patient.namaPemeriksaan)) {
-                pemeriksaanSelect.value = patient.namaPemeriksaan;
+                // Pemeriksaan ada di list - centang checkbox yang sesuai
+                document.querySelectorAll('input[name="pemeriksaan"]').forEach(cb => {
+                    if (cb.value === patient.namaPemeriksaan) {
+                        cb.checked = true;
+                    }
+                });
                 document.getElementById('pemeriksaanCustomGroup').style.display = 'none';
                 document.getElementById('pemeriksaanCustom').required = false;
             } else {
-                pemeriksaanSelect.value = 'lainnya';
+                // Pemeriksaan custom
+                document.getElementById('pemeriksaanLainnyaCheck').checked = true;
                 document.getElementById('pemeriksaanCustomGroup').style.display = 'block';
                 document.getElementById('pemeriksaanCustom').value = patient.namaPemeriksaan;
                 document.getElementById('pemeriksaanCustom').required = true;
             }
             
+            // Update display
+            const selected = Array.from(document.querySelectorAll('input[name="pemeriksaan"]:checked'))
+                .map(cb => cb.value)
+                .filter(val => val !== 'lainnya');
+            const display = document.getElementById('selectedPemeriksaanDisplay');
+            if (selected.length > 0) {
+                display.textContent = `Terpilih: ${selected.join(', ')}`;
+            }
+            
+            // Handle diagnosa
             const diagnosaSelect = document.getElementById('diagnosa');
             const diagnosaOptions = Array.from(diagnosaSelect.options).map(opt => opt.value);
             
@@ -1030,11 +1122,18 @@
 
         function resetForm() {
             document.getElementById('patientForm').reset();
+            
+            // Uncheck semua checkbox pemeriksaan
+            document.querySelectorAll('input[name="pemeriksaan"]').forEach(cb => {
+                cb.checked = false;
+            });
+            
             document.getElementById('diagnosaCustomGroup').style.display = 'none';
             document.getElementById('diagnosaCustom').required = false;
             document.getElementById('pemeriksaanCustomGroup').style.display = 'none';
             document.getElementById('pemeriksaanCustom').required = false;
             document.getElementById('fileName').textContent = '';
+            document.getElementById('selectedPemeriksaanDisplay').textContent = '';
             editKey = null;
             document.getElementById('submitBtn').textContent = 'Tambah Data';
         }
