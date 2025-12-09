@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rekapitulasi Pasien Lab Andrologi - RS Imanuel Way Halim</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .form-section {
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #495057;
+            font-size: 14px;
+        }
+
+        input, select, textarea {
+            padding: 10px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .file-name {
+            font-size: 12px;
+            color: #6c757d;
+            font-style: italic;
+            margin-top: 5px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-edit {
+            background: #ffc107;
+            color: #000;
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .btn-edit:hover {
+            background: #e0a800;
+        }
+
+        .btn-delete {
+            background: #dc3545;
+            color: white;
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .btn-delete:hover {
+            background: #c82333;
+        }
+
+        .table-section {
+            padding: 30px;
+            overflow-x: auto;
+        }
+
+        .filter-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .filter-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #495057;
+            font-size: 14px;
+        }
+
+        .filter-group select {
+            width: 100%;
+        }
+
+        .btn-filter {
+            background: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            height: 42px;
+        }
+
+        .btn-filter:hover {
+            background: #218838;
+        }
+
+        .btn-export {
+            background: #17a2b8;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            height: 42px;
+        }
+
+        .btn-export:hover {
+            background: #138496;
+        }
+
+        .btn-backup {
+            background: #6f42c1;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            height: 42px;
+        }
+
+        .btn-backup:hover {
+            background: #5a32a3;
+        }
+
+        .btn-restore {
+            background: #fd7e14;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            height: 42px;
+        }
+
+        .btn-restore:hover {
+            background: #e8590c;
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            flex: 1;
+            min-width: 200px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            font-size: 32px;
+            margin-bottom: 5px;
+        }
+
+        .stat-card p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .month-header {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 15px 20px;
+            margin: 30px 0 15px 0;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .month-header:first-child {
+            margin-top: 0;
+        }
+
+        .month-count {
+            background: rgba(255,255,255,0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 13px;
+        }
+
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .diagnosa-custom {
+            margin-top: 10px;
+            display: none;
+        }
+
+        .pdf-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .pdf-link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            table {
+                font-size: 12px;
+            }
+            
+            th, td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Rekapitulasi Pasien Laboratorium Andrologi</h1>
+            <p>RS Imanuel Way Halim Bandarlampung</p>
+        </div>
+
+        <div class="form-section">
+            <h2 style="margin-bottom: 20px; color: #495057;">Tambah Data Pasien</h2>
+            <form id="patientForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="tanggalPemeriksaan">Tanggal Pemeriksaan *</label>
+                        <input type="date" id="tanggalPemeriksaan" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="nomorRM">Nomor RM *</label>
+                        <input type="text" id="nomorRM" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="namaPasien">Nama Pasien *</label>
+                        <input type="text" id="namaPasien" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="namaPemeriksaan">Nama Pemeriksaan *</label>
+                        <select id="namaPemeriksaan" required>
+                            <option value="">-- Pilih Pemeriksaan --</option>
+                            <option value="Alfa Glucosidase">Alfa Glucosidase</option>
+                            <option value="Analisa Aspermia">Analisa Aspermia</option>
+                            <option value="Analisa Sperma">Analisa Sperma</option>
+                            <option value="DFI">DFI</option>
+                            <option value="Fructose">Fructose</option>
+                            <option value="Preparasi Sperma">Preparasi Sperma</option>
+                            <option value="Urine Pascaejakulasi">Urine Pascaejakulasi</option>
+                            <option value="Zinc">Zinc</option>
+                            <option value="lainnya">Lainnya (Sebutkan)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="diagnosa">Diagnosa *</label>
+                        <select id="diagnosa" required>
+                            <option value="">-- Pilih Diagnosa --</option>
+                            <option value="Aspermia">Aspermia</option>
+                            <option value="Asthenoteratozoospermia">Asthenoteratozoospermia</option>
+                            <option value="Asthenozoospermia">Asthenozoospermia</option>
+                            <option value="Azoospermia Post Sentrifugasi">Azoospermia Post Sentrifugasi</option>
+                            <option value="Cryptozoospermia">Cryptozoospermia</option>
+                            <option value="Extreme Oligoasthenoteratozoospermia">Extreme Oligoasthenoteratozoospermia</option>
+                            <option value="Extreme Oligoteratozoospermia">Extreme Oligoteratozoospermia</option>
+                            <option value="Extreme Oligozoospermia">Extreme Oligozoospermia</option>
+                            <option value="Normozoospermia">Normozoospermia</option>
+                            <option value="Oligoasthenoteratozoospermia">Oligoasthenoteratozoospermia</option>
+                            <option value="Oligoteratozoospermia">Oligoteratozoospermia</option>
+                            <option value="Oligozoospermia">Oligozoospermia</option>
+                            <option value="Teratozoospermia">Teratozoospermia</option>
+                            <option value="lain-lain">Lain-lain (Sebutkan)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group diagnosa-custom" id="diagnosaCustomGroup">
+                    <label for="diagnosaCustom">Sebutkan Diagnosa Lain *</label>
+                    <input type="text" id="diagnosaCustom">
+                </div>
+
+                <div class="form-group diagnosa-custom" id="pemeriksaanCustomGroup" style="display: none;">
+                    <label for="pemeriksaanCustom">Sebutkan Pemeriksaan Lain *</label>
+                    <input type="text" id="pemeriksaanCustom">
+                </div>
+
+                <div class="form-grid" style="margin-top: 15px;">
+                    <div class="form-group">
+                        <label for="keterangan">Keterangan</label>
+                        <textarea id="keterangan"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="pdfFile">Upload File PDF (Opsional)</label>
+                        <input type="file" id="pdfFile" accept=".pdf">
+                        <span class="file-name" id="fileName"></span>
+                    </div>
+                </div>
+
+                <div class="button-group" style="margin-top: 20px;">
+                    <button type="button" class="btn-secondary" id="resetBtn">Reset</button>
+                    <button type="submit" class="btn-primary" id="submitBtn">Tambah Data</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="table-section">
+            <div class="filter-section">
+                <div class="filter-group">
+                    <label for="filterBulan">Filter Bulan</label>
+                    <select id="filterBulan">
+                        <option value="">Semua Bulan</option>
+                        <option value="01">Januari</option>
+                        <option value="02">Februari</option>
+                        <option value="03">Maret</option>
+                        <option value="04">April</option>
+                        <option value="05">Mei</option>
+                        <option value="06">Juni</option>
+                        <option value="07">Juli</option>
+                        <option value="08">Agustus</option>
+                        <option value="09">September</option>
+                        <option value="10">Oktober</option>
+                        <option value="11">November</option>
+                        <option value="12">Desember</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filterTahun">Filter Tahun</label>
+                    <select id="filterTahun">
+                        <option value="">Semua Tahun</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filterPemeriksaan">Filter Pemeriksaan</label>
+                    <select id="filterPemeriksaan">
+                        <option value="">Semua Pemeriksaan</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filterDiagnosa">Filter Diagnosa</label>
+                    <select id="filterDiagnosa">
+                        <option value="">Semua Diagnosa</option>
+                    </select>
+                </div>
+                <button class="btn-filter" id="filterBtn">Terapkan Filter</button>
+                <button class="btn-export" id="exportBtn">📥 Ekspor ke Excel</button>
+                <button class="btn-backup" id="backupBtn">💾 Backup Data</button>
+                <button class="btn-restore" id="restoreBtn">📂 Restore Data</button>
+                <input type="file" id="restoreFile" accept=".json" style="display: none;">
+            </div>
+
+            <div class="stats">
+                <div class="stat-card">
+                    <h3 id="totalPasien">0</h3>
+                    <p>Total Pasien</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="totalPemeriksaan">0</h3>
+                    <p>Total Pemeriksaan</p>
+                </div>
+            </div>
+
+            <div id="tableContainer">
+                <div class="empty-state">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <h3>Belum Ada Data</h3>
+                    <p>Silakan tambahkan data pasien melalui form di atas</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let patients = [];
+        let editIndex = -1;
+        let currentFilter = { bulan: '', tahun: '' };
+
+        // Load data saat halaman dimuat
+        window.addEventListener('DOMContentLoaded', function() {
+            loadData();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            // Handle perubahan diagnosa
+            document.getElementById('diagnosa').addEventListener('change', function() {
+                const customGroup = document.getElementById('diagnosaCustomGroup');
+                const customInput = document.getElementById('diagnosaCustom');
+                
+                if (this.value === 'lain-lain') {
+                    customGroup.style.display = 'block';
+                    customInput.required = true;
+                } else {
+                    customGroup.style.display = 'none';
+                    customInput.required = false;
+                    customInput.value = '';
+                }
+            });
+
+            // Handle perubahan nama pemeriksaan
+            document.getElementById('namaPemeriksaan').addEventListener('change', function() {
+                const customGroup = document.getElementById('pemeriksaanCustomGroup');
+                const customInput = document.getElementById('pemeriksaanCustom');
+                
+                if (this.value === 'lainnya') {
+                    customGroup.style.display = 'block';
+                    customInput.required = true;
+                } else {
+                    customGroup.style.display = 'none';
+                    customInput.required = false;
+                    customInput.value = '';
+                }
+            });
+
+            // Handle file upload
+            document.getElementById('pdfFile').addEventListener('change', function(e) {
+                const fileName = document.getElementById('fileName');
+                if (e.target.files.length > 0) {
+                    fileName.textContent = `File: ${e.target.files[0].name}`;
+                } else {
+                    fileName.textContent = '';
+                }
+            });
+
+            // Submit form
+            document.getElementById('patientForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                handleSubmit();
+            });
+
+            // Reset button
+            document.getElementById('resetBtn').addEventListener('click', function() {
+                resetForm();
+            });
+
+            // Filter button
+            document.getElementById('filterBtn').addEventListener('click', function() {
+                applyFilter();
+            });
+
+            // Export button
+            document.getElementById('exportBtn').addEventListener('click', function() {
+                exportToExcel();
+            });
+
+            // Backup button
+            document.getElementById('backupBtn').addEventListener('click', function() {
+                backupData();
+            });
+
+            // Restore button
+            document.getElementById('restoreBtn').addEventListener('click', function() {
+                document.getElementById('restoreFile').click();
+            });
+
+            // Restore file input
+            document.getElementById('restoreFile').addEventListener('change', function(e) {
+                if (e.target.files.length > 0) {
+                    restoreData(e.target.files[0]);
+                }
+            });
+        }
+
+        function handleSubmit() {
+            const diagnosaSelect = document.getElementById('diagnosa').value;
+            const diagnosaCustom = document.getElementById('diagnosaCustom').value;
+            const diagnosa = diagnosaSelect === 'lain-lain' ? diagnosaCustom : diagnosaSelect;
+            
+            const pemeriksaanSelect = document.getElementById('namaPemeriksaan').value;
+            const pemeriksaanCustom = document.getElementById('pemeriksaanCustom').value;
+            const namaPemeriksaan = pemeriksaanSelect === 'lainnya' ? pemeriksaanCustom : pemeriksaanSelect;
+            
+            const fileInput = document.getElementById('pdfFile');
+            
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    const pdfData = {
+                        name: file.name,
+                        data: e.target.result
+                    };
+                    savePatient(diagnosa, namaPemeriksaan, pdfData);
+                };
+                
+                reader.readAsDataURL(file);
+            } else {
+                savePatient(diagnosa, namaPemeriksaan, null);
+            }
+        }
+
+        function savePatient(diagnosa, namaPemeriksaan, pdfData) {
+            const patientData = {
+                tanggalPemeriksaan: document.getElementById('tanggalPemeriksaan').value,
+                nomorRM: document.getElementById('nomorRM').value,
+                namaPasien: document.getElementById('namaPasien').value,
+                namaPemeriksaan: namaPemeriksaan,
+                diagnosa: diagnosa,
+                keterangan: document.getElementById('keterangan').value || '',
+                pdf: pdfData,
+                tanggalInput: new Date().toISOString()
+            };
+
+            if (editIndex >= 0) {
+                patients[editIndex] = patientData;
+                editIndex = -1;
+                document.getElementById('submitBtn').textContent = 'Tambah Data';
+            } else {
+                patients.push(patientData);
+            }
+
+            saveData();
+            populateYearFilter();
+            populatePemeriksaanFilter();
+            populateDiagnosaFilter();
+            renderTable();
+            updateStats();
+            resetForm();
+        }
+
+        function loadData() {
+            const saved = localStorage.getItem('patientsData');
+            if (saved) {
+                patients = JSON.parse(saved);
+            }
+            populateYearFilter();
+            populatePemeriksaanFilter();
+            populateDiagnosaFilter();
+            renderTable();
+            updateStats();
+        }
+
+        function saveData() {
+            localStorage.setItem('patientsData', JSON.stringify(patients));
+        }
+
+        function populateYearFilter() {
+            const years = new Set();
+            patients.forEach(patient => {
+                if (patient.tanggalPemeriksaan) {
+                    const year = patient.tanggalPemeriksaan.split('-')[0];
+                    years.add(year);
+                }
+            });
+            
+            const filterTahun = document.getElementById('filterTahun');
+            const currentValue = filterTahun.value;
+            
+            // Clear existing options except first one
+            filterTahun.innerHTML = '<option value="">Semua Tahun</option>';
+            
+            Array.from(years).sort().reverse().forEach(year => {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                filterTahun.appendChild(option);
+            });
+            
+            // Restore previous value if still exists
+            if (currentValue && years.has(currentValue)) {
+                filterTahun.value = currentValue;
+            }
+        }
+
+        function populatePemeriksaanFilter() {
+            const pemeriksaanSet = new Set();
+            patients.forEach(patient => {
+                if (patient.namaPemeriksaan) {
+                    pemeriksaanSet.add(patient.namaPemeriksaan);
+                }
+            });
+            
+            const filterPemeriksaan = document.getElementById('filterPemeriksaan');
+            const currentValue = filterPemeriksaan.value;
+            
+            // Clear existing options except first one
+            filterPemeriksaan.innerHTML = '<option value="">Semua Pemeriksaan</option>';
+            
+            Array.from(pemeriksaanSet).sort().forEach(pemeriksaan => {
+                const option = document.createElement('option');
+                option.value = pemeriksaan;
+                option.textContent = pemeriksaan;
+                filterPemeriksaan.appendChild(option);
+            });
+            
+            // Restore previous value if still exists
+            if (currentValue && pemeriksaanSet.has(currentValue)) {
+                filterPemeriksaan.value = currentValue;
+            }
+        }
+
+        function populateDiagnosaFilter() {
+            const diagnosaSet = new Set();
+            patients.forEach(patient => {
+                if (patient.diagnosa) {
+                    diagnosaSet.add(patient.diagnosa);
+                }
+            });
+            
+            const filterDiagnosa = document.getElementById('filterDiagnosa');
+            const currentValue = filterDiagnosa.value;
+            
+            // Clear existing options except first one
+            filterDiagnosa.innerHTML = '<option value="">Semua Diagnosa</option>';
+            
+            Array.from(diagnosaSet).sort().forEach(diagnosa => {
+                const option = document.createElement('option');
+                option.value = diagnosa;
+                option.textContent = diagnosa;
+                filterDiagnosa.appendChild(option);
+            });
+            
+            // Restore previous value if still exists
+            if (currentValue && diagnosaSet.has(currentValue)) {
+                filterDiagnosa.value = currentValue;
+            }
+        }
+
+        function applyFilter() {
+            currentFilter.bulan = document.getElementById('filterBulan').value;
+            currentFilter.tahun = document.getElementById('filterTahun').value;
+            currentFilter.pemeriksaan = document.getElementById('filterPemeriksaan').value;
+            currentFilter.diagnosa = document.getElementById('filterDiagnosa').value;
+            renderTable();
+            updateStats();
+        }
+
+        function getFilteredPatients() {
+            return patients.filter(patient => {
+                if (!patient.tanggalPemeriksaan) return false;
+                
+                const [year, month] = patient.tanggalPemeriksaan.split('-');
+                
+                if (currentFilter.bulan && month !== currentFilter.bulan) return false;
+                if (currentFilter.tahun && year !== currentFilter.tahun) return false;
+                if (currentFilter.pemeriksaan && patient.namaPemeriksaan !== currentFilter.pemeriksaan) return false;
+                if (currentFilter.diagnosa && patient.diagnosa !== currentFilter.diagnosa) return false;
+                
+                return true;
+            });
+        }
+
+        function groupByMonth(patientsList) {
+            const groups = {};
+            
+            patientsList.forEach(patient => {
+                const [year, month] = patient.tanggalPemeriksaan.split('-');
+                const key = `${year}-${month}`;
+                
+                if (!groups[key]) {
+                    groups[key] = [];
+                }
+                groups[key].push(patient);
+            });
+            
+            return groups;
+        }
+
+        function getMonthName(monthNum) {
+            const months = {
+                '01': 'Januari', '02': 'Februari', '03': 'Maret',
+                '04': 'April', '05': 'Mei', '06': 'Juni',
+                '07': 'Juli', '08': 'Agustus', '09': 'September',
+                '10': 'Oktober', '11': 'November', '12': 'Desember'
+            };
+            return months[monthNum] || monthNum;
+        }
+
+        function formatDate(dateString) {
+            const [year, month, day] = dateString.split('-');
+            return `${day}/${month}/${year}`;
+        }
+
+        function renderTable() {
+            const container = document.getElementById('tableContainer');
+            const filteredPatients = getFilteredPatients();
+            
+            if (filteredPatients.length === 0) {
+                const message = (currentFilter.bulan || currentFilter.tahun) 
+                    ? 'Tidak ada data untuk filter yang dipilih'
+                    : 'Belum Ada Data';
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <h3>${message}</h3>
+                        <p>Silakan ${(currentFilter.bulan || currentFilter.tahun) ? 'ubah filter atau ' : ''}tambahkan data pasien melalui form di atas</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const groupedPatients = groupByMonth(filteredPatients);
+            const sortedKeys = Object.keys(groupedPatients).sort().reverse();
+
+            let tableHTML = '';
+            let globalIndex = 1;
+
+            sortedKeys.forEach(monthKey => {
+                const [year, month] = monthKey.split('-');
+                const monthPatients = groupedPatients[monthKey];
+                
+                monthPatients.sort((a, b) => new Date(a.tanggalPemeriksaan) - new Date(b.tanggalPemeriksaan));
+
+                tableHTML += `
+                    <div class="month-header">
+                        <span>${getMonthName(month)} ${year}</span>
+                        <span class="month-count">${monthPatients.length} pasien</span>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Tanggal</th>
+                                <th>Nomor RM</th>
+                                <th>Nama Pasien</th>
+                                <th>Nama Pemeriksaan</th>
+                                <th>Diagnosa</th>
+                                <th>Keterangan</th>
+                                <th>File PDF</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                monthPatients.forEach(patient => {
+                    const originalIndex = patients.indexOf(patient);
+                    let pdfLink = '-';
+                    if (patient.pdf) {
+                        pdfLink = `<a href="#" onclick="viewPDF(${originalIndex}); return false;" class="pdf-link">📄 Lihat PDF</a> | 
+                                   <a href="${patient.pdf.data}" download="${patient.pdf.name}" class="pdf-link">💾 Download</a>`;
+                    }
+                    
+                    tableHTML += `
+                        <tr>
+                            <td>${globalIndex}</td>
+                            <td>${formatDate(patient.tanggalPemeriksaan)}</td>
+                            <td>${patient.nomorRM}</td>
+                            <td>${patient.namaPasien}</td>
+                            <td>${patient.namaPemeriksaan}</td>
+                            <td>${patient.diagnosa}</td>
+                            <td>${patient.keterangan || '-'}</td>
+                            <td>${pdfLink}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn-edit" onclick="editPatient(${originalIndex})">Edit</button>
+                                    <button class="btn-delete" onclick="deletePatient(${originalIndex})">Hapus</button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                    globalIndex++;
+                });
+
+                tableHTML += `
+                        </tbody>
+                    </table>
+                `;
+            });
+
+            container.innerHTML = tableHTML;
+        }
+
+        function editPatient(index) {
+            editIndex = index;
+            const patient = patients[index];
+            
+            document.getElementById('tanggalPemeriksaan').value = patient.tanggalPemeriksaan;
+            document.getElementById('nomorRM').value = patient.nomorRM;
+            document.getElementById('namaPasien').value = patient.namaPasien;
+            
+            // Handle nama pemeriksaan
+            const pemeriksaanSelect = document.getElementById('namaPemeriksaan');
+            const pemeriksaanOptions = Array.from(pemeriksaanSelect.options).map(opt => opt.value);
+            
+            if (pemeriksaanOptions.includes(patient.namaPemeriksaan)) {
+                pemeriksaanSelect.value = patient.namaPemeriksaan;
+                document.getElementById('pemeriksaanCustomGroup').style.display = 'none';
+                document.getElementById('pemeriksaanCustom').required = false;
+            } else {
+                pemeriksaanSelect.value = 'lainnya';
+                document.getElementById('pemeriksaanCustomGroup').style.display = 'block';
+                document.getElementById('pemeriksaanCustom').value = patient.namaPemeriksaan;
+                document.getElementById('pemeriksaanCustom').required = true;
+            }
+            
+            // Handle diagnosa
+            const diagnosaSelect = document.getElementById('diagnosa');
+            const diagnosaOptions = Array.from(diagnosaSelect.options).map(opt => opt.value);
+            
+            if (diagnosaOptions.includes(patient.diagnosa)) {
+                diagnosaSelect.value = patient.diagnosa;
+                document.getElementById('diagnosaCustomGroup').style.display = 'none';
+                document.getElementById('diagnosaCustom').required = false;
+            } else {
+                diagnosaSelect.value = 'lain-lain';
+                document.getElementById('diagnosaCustomGroup').style.display = 'block';
+                document.getElementById('diagnosaCustom').value = patient.diagnosa;
+                document.getElementById('diagnosaCustom').required = true;
+            }
+            
+            document.getElementById('keterangan').value = patient.keterangan;
+            document.getElementById('submitBtn').textContent = 'Update Data';
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function deletePatient(index) {
+            if (confirm('Apakah Anda yakin ingin menghapus data pasien ini?')) {
+                patients.splice(index, 1);
+                saveData();
+                populateYearFilter();
+                populatePemeriksaanFilter();
+                populateDiagnosaFilter();
+                renderTable();
+                updateStats();
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('patientForm').reset();
+            document.getElementById('diagnosaCustomGroup').style.display = 'none';
+            document.getElementById('diagnosaCustom').required = false;
+            document.getElementById('pemeriksaanCustomGroup').style.display = 'none';
+            document.getElementById('pemeriksaanCustom').required = false;
+            document.getElementById('fileName').textContent = '';
+            editIndex = -1;
+            document.getElementById('submitBtn').textContent = 'Tambah Data';
+        }
+
+        function updateStats() {
+            const filteredPatients = getFilteredPatients();
+            document.getElementById('totalPasien').textContent = filteredPatients.length;
+            document.getElementById('totalPemeriksaan').textContent = filteredPatients.length;
+        }
+
+        function viewPDF(index) {
+            const patient = patients[index];
+            if (!patient.pdf) {
+                alert('File PDF tidak tersedia');
+                return;
+            }
+
+            // Buka PDF di tab baru
+            const pdfWindow = window.open('', '_blank');
+            pdfWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>${patient.pdf.name}</title>
+                    <style>
+                        body { margin: 0; padding: 0; }
+                        iframe { width: 100%; height: 100vh; border: none; }
+                    </style>
+                </head>
+                <body>
+                    <iframe src="${patient.pdf.data}" type="application/pdf"></iframe>
+                </body>
+                </html>
+            `);
+        }
+
+        function exportToExcel() {
+            const filteredPatients = getFilteredPatients();
+            
+            if (filteredPatients.length === 0) {
+                alert('Tidak ada data untuk diekspor');
+                return;
+            }
+
+            // Sort by date
+            filteredPatients.sort((a, b) => new Date(a.tanggalPemeriksaan) - new Date(b.tanggalPemeriksaan));
+
+            // Create CSV content
+            let csvContent = '\uFEFF'; // UTF-8 BOM for Excel
+            
+            // Header
+            csvContent += 'No,Tanggal Pemeriksaan,Nomor RM,Nama Pasien,Nama Pemeriksaan,Diagnosa,Keterangan\n';
+            
+            // Data rows
+            filteredPatients.forEach((patient, index) => {
+                const row = [
+                    index + 1,
+                    formatDate(patient.tanggalPemeriksaan),
+                    patient.nomorRM,
+                    patient.namaPasien,
+                    patient.namaPemeriksaan,
+                    patient.diagnosa,
+                    patient.keterangan || '-'
+                ].map(cell => {
+                    // Escape quotes and wrap in quotes if contains comma or newline
+                    const cellStr = String(cell).replace(/"/g, '""');
+                    return cellStr.includes(',') || cellStr.includes('\n') ? `"${cellStr}"` : cellStr;
+                }).join(',');
+                
+                csvContent += row + '\n';
+            });
+
+            // Create blob and download
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            // Generate filename
+            const now = new Date();
+            const dateStr = now.toISOString().split('T')[0];
+            let filename = `Data_Pasien_Lab_Andrologi_${dateStr}`;
+            
+            if (currentFilter.bulan || currentFilter.tahun) {
+                const filterParts = [];
+                if (currentFilter.tahun) filterParts.push(currentFilter.tahun);
+                if (currentFilter.bulan) filterParts.push(getMonthName(currentFilter.bulan));
+                if (filterParts.length > 0) {
+                    filename += `_${filterParts.join('_')}`;
+                }
+            }
+            
+            filename += '.csv';
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function backupData() {
+            if (patients.length === 0) {
+                alert('Tidak ada data untuk di-backup');
+                return;
+            }
+
+            // Create backup object dengan timestamp
+            const backup = {
+                timestamp: new Date().toISOString(),
+                version: '1.0',
+                totalPatients: patients.length,
+                data: patients
+            };
+
+            // Convert to JSON
+            const jsonStr = JSON.stringify(backup, null, 2);
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            
+            // Create download link
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            // Generate filename
+            const now = new Date();
+            const dateStr = now.toISOString().slice(0, 19).replace(/:/g, '-');
+            const filename = `Backup_Lab_Andrologi_${dateStr}.json`;
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            alert(`Backup berhasil!\nFile: ${filename}\nTotal data: ${patients.length} pasien\n\nSimpan file ini di komputer Anda sebagai cadangan.`);
+        }
+
+        function restoreData(file) {
+            if (!file) return;
+
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    const backup = JSON.parse(e.target.result);
+                    
+                    // Validasi struktur backup
+                    if (!backup.data || !Array.isArray(backup.data)) {
+                        throw new Error('Format file backup tidak valid');
+                    }
+
+                    // Konfirmasi restore
+                    const confirmMsg = `Restore data dari backup?\n\n` +
+                        `Tanggal backup: ${new Date(backup.timestamp).toLocaleString('id-ID')}\n` +
+                        `Total data: ${backup.totalPatients} pasien\n\n` +
+                        `PERHATIAN: Data yang ada sekarang akan ditimpa!\n` +
+                        `Data saat ini: ${patients.length} pasien`;
+                    
+                    if (!confirm(confirmMsg)) {
+                        document.getElementById('restoreFile').value = '';
+                        return;
+                    }
+
+                    // Restore data
+                    patients = backup.data;
+                    saveData();
+                    
+                    // Update UI
+                    populateYearFilter();
+                    populatePemeriksaanFilter();
+                    populateDiagnosaFilter();
+                    renderTable();
+                    updateStats();
+                    
+                    alert(`Restore berhasil!\n${backup.totalPatients} data pasien telah dipulihkan.`);
+                    
+                    // Reset file input
+                    document.getElementById('restoreFile').value = '';
+                    
+                } catch (error) {
+                    alert('Error: File backup tidak valid atau rusak.\n\n' + error.message);
+                    document.getElementById('restoreFile').value = '';
+                }
+            };
+            
+            reader.onerror = function() {
+                alert('Error: Gagal membaca file backup.');
+                document.getElementById('restoreFile').value = '';
+            };
+            
+            reader.readAsText(file);
+        }
+    </script>
+</body>
+</html>
